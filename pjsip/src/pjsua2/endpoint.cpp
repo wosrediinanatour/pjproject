@@ -920,6 +920,19 @@ void Endpoint::on_reg_state2(pjsua_acc_id acc_id, pjsua_reg_info *info)
     acc->onRegState(prm);
 }
 
+void Endpoint::on_acc_tsx_state(pjsua_acc_id acc_id, pjsip_event *event)
+{
+    Account *acc = lookupAcc(acc_id, "on_acc_tsx_state:response()");
+    if (!acc) {
+        return;
+    }
+
+    OnTsxStateParam prm;
+    prm.e.fromPj(*event);
+
+    acc->onTsxState(prm);
+}
+
 void Endpoint::on_incoming_subscribe(pjsua_acc_id acc_id,
                                      pjsua_srv_pres *srv_pres,
                                      pjsua_buddy_id buddy_id,
@@ -1926,6 +1939,7 @@ void Endpoint::libInit(const EpConfig &prmEpConfig) PJSUA2_THROW(Error)
     ua_cfg.cb.on_nat_detect     = &Endpoint::on_nat_detect;
     ua_cfg.cb.on_transport_state = &Endpoint::on_transport_state;
 
+    ua_cfg.cb.on_acc_tsx_state  = &Endpoint::on_acc_tsx_state;
     ua_cfg.cb.on_incoming_call  = &Endpoint::on_incoming_call;
     ua_cfg.cb.on_reg_started    = &Endpoint::on_reg_started;
     ua_cfg.cb.on_reg_state2     = &Endpoint::on_reg_state2;

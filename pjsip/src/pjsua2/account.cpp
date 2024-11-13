@@ -24,6 +24,8 @@
 using namespace pj;
 using namespace std;
 
+#include <pjsua-lib/pjsua_internal.h>   /* For retrieving pjsua threads */
+
 #define THIS_FILE               "account.cpp"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,6 +115,13 @@ void RtcpFbConfig::writeObject(ContainerNode &node) const PJSUA2_THROW(Error)
         NODE_WRITE_STRING       (cap_node, this->caps[i].typeName);
         NODE_WRITE_STRING       (cap_node, this->caps[i].param);
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+SendRequestParam::SendRequestParam()
+: method("")
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1060,6 +1069,16 @@ AccountInfo Account::getInfo() const PJSUA2_THROW(Error)
     PJSUA2_CHECK_EXPR( pjsua_acc_get_info(id, &pj_ai) );
     ai.fromPj(pj_ai);
     return ai;
+}
+
+void Account::sendRequest(const pj::SendRequestParam& prm) PJSUA2_THROW(Error)
+{
+    pj_str_t method = str2Pj(prm.method);
+    pj_str_t dest_uri = str2Pj(prm.txOption.targetUri);
+    pjsua_msg_data msg_data;
+    prm.txOption.toPj(msg_data);
+
+    PJSUA2_CHECK_EXPR(pjsua_acc_send_request(id, &dest_uri, &method, &msg_data));
 }
 
 void Account::setRegistration(bool renew) PJSUA2_THROW(Error)

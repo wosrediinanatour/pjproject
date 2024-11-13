@@ -800,6 +800,31 @@ public:
 };
 
 /**
+ * This structure contains parameters for Account::sendRequest()
+ */
+struct SendRequestParam
+{
+    /**
+     * SIP method of the request.
+     */
+    string       method;
+
+    /**
+     * Message body and/or list of headers etc to be included in
+     * outgoing request.
+     */
+    SipTxOption  txOption;
+
+public:
+    /**
+     * Default constructor initializes with zero/empty values.
+     */
+    SendRequestParam();
+};
+
+
+
+/**
  * SRTP crypto.
  */
 struct SrtpCrypto
@@ -1726,6 +1751,18 @@ struct OnMwiInfoParam
 };
 
 /**
+ * This structure contains parameters for Account::onTsxState() callback.
+ */
+struct OnTsxStateParam
+{
+    /**
+     * Transaction event that caused the state change.
+     */
+    SipEvent    e;
+};
+
+
+/**
  * Parameters for presNotify() account method.
  */
 struct PresNotifyParam
@@ -1900,6 +1937,18 @@ public:
      * @return                  Account info.
      */
     AccountInfo getInfo() const PJSUA2_THROW(Error);
+
+    /**
+     * Send arbitrary requests using the account. Application should only use
+     * this function to create auxiliary requests outside dialog, such as
+     * OPTIONS, and use the call or presence API to create dialog related
+     * requests.
+     *
+     * @param prm.method    SIP method of the request.
+     * @param prm.txOption  Optional message body and/or list of headers to be
+     *                      included in outgoing request.
+     */
+    void sendRequest(const pj::SendRequestParam& prm) PJSUA2_THROW(Error);
 
     /**
      * Update registration or perform unregistration. Application normally
@@ -2080,6 +2129,16 @@ public:
      * @param prm           Callback parameter.
      */
     virtual void onInstantMessageStatus(OnInstantMessageStatusParam &prm)
+    { PJ_UNUSED_ARG(prm); }
+
+    /**
+     * Notify application when call state has changed.
+     * Application may then query the account info to get the
+     * detail call states by calling getInfo() function.
+     *
+     * @param prm       Callback parameter.
+     */
+    virtual void onTsxState(OnTsxStateParam &prm)
     { PJ_UNUSED_ARG(prm); }
 
     /**

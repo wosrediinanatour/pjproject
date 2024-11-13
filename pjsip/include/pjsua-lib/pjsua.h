@@ -1197,6 +1197,19 @@ typedef struct pjsua_callback
                               pjsip_event *e);
 
     /**
+     * This is a general notification callback which is called whenever
+     * a transaction within the account has changed state. Application can
+     * implement this callback for example to monitor the state of
+     * outgoing requests, or to answer unhandled incoming requests
+     * with a final response.
+     *
+     * @param acc_id   Account identification.
+     * @param e         Transaction event that caused the state change.
+     */
+    void (*on_acc_tsx_state)(pjsua_acc_id acc_id,
+                             pjsip_event *event);
+
+    /**
      * Notify application when media state in the call has changed.
      * Normal application would need to implement this callback, e.g.
      * to connect the call's media to sound device. When ICE is used,
@@ -4921,6 +4934,25 @@ PJ_DECL(pj_status_t) pjsua_acc_get_config(pjsua_acc_id acc_id,
 PJ_DECL(pj_status_t) pjsua_acc_modify(pjsua_acc_id acc_id,
                                       const pjsua_acc_config *acc_cfg);
 
+/**
+ * Send arbitrary requests using the account. Application should only use
+ * this function to create auxiliary requests outside dialog, such as
+ * OPTIONS, and use the call or presence API to create dialog related
+ * requests.
+ *
+ * @param acc_id        The account ID.
+ * @param dst_uri       URI to be put in the To header (normally is the same
+ *                      as the target URI).
+ * @param method        The SIP method of the request.
+ * @param msg_data      Optional headers etc to be added to outgoing
+ *                      request, or NULL if no custom header is desired.
+ *
+ * @return              PJ_SUCCESS or the error code.
+ */
+PJ_DECL(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
+                                            const pj_str_t *dest_uri,
+                                            const pj_str_t *method_str,
+                                            const pjsua_msg_data *msg_data);
 
 /**
  * Modify account's presence status to be advertised to remote/presence

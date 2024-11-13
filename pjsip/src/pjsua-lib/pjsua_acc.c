@@ -1510,6 +1510,58 @@ on_return:
     return status;
 }
 
+static void on_acc_tsx_state(void *token, pjsip_event *event)
+{
+    pjsua_acc_id acc_id = *(pjsua_acc_id*)token;
+    (pjsua_var.ua_cfg.cb.on_acc_tsx_state)(acc_id, event);
+}
+
+PJ_DEF(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
+                                           const pj_str_t *dest_uri,
+                                           const pj_str_t *method_str,
+                                           const pjsua_msg_data *msg_data)
+{
+    const pjsip_hdr *cap_hdr;
+    pjsip_method method;
+    pj_status_t status;
+    pjsip_tx_data *tdata = NULL;
+    pjsua_acc_id *token = NULL;
+
+    PJ_ASSERT_RETURN(acc_id>=0, PJ_EINVAL);
+
+    PJ_LOG(4,(THIS_FILE, "Account %d sending %.*s request..",
+                          acc_id, (int)method_str->slen, method_str->ptr));
+    pj_log_push_indent();
+
+    pjsip_method_init_np(&method, (pj_str_t*)method_str);
+    status = pjsua_acc_create_request(acc_id, &method, &msg_data->target_uri, &tdata);
+    if (status != PJ_SUCCESS) {
+        pjsua_perror(THIS_FILE, "Unable to create request", status);
+        goto on_return;
+    }
+
+    token = PJ_POOL_ZALLOC_T(tdata->pool, pjsua_acc_id);
+    *token = acc_id;
+
+    pjsua_process_msg_data(tdata, msg_data);
+
+    cap_hdr = pjsip_endpt_get_capability(pjsua_var.endpt, PJSIP_H_ACCEPT, NULL);
+    if (cap_hdr) {
+        pjsip_msg_add_hdr(tdata->msg,
+                          (pjsip_hdr*) pjsip_hdr_clone(tdata->pool, cap_hdr));
+    }
+
+    status = pjsip_endpt_send_request(pjsua_var.endpt, tdata, -1, token, &on_acc_tsx_state);
+    if (status != PJ_SUCCESS) {
+        pjsua_perror(THIS_FILE, "Unable to send request", status);
+        goto on_return;
+    }
+
+on_return:
+   pj_log_pop_indent();
+   return status;
+}
+
 
 /*
  * Modify account's presence status to be advertised to remote/presence
