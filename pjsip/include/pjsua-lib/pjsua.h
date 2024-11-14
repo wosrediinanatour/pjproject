@@ -1197,17 +1197,16 @@ typedef struct pjsua_callback
                               pjsip_event *e);
 
     /**
-     * This is a general notification callback which is called whenever
-     * a transaction within the account has changed state. Application can
-     * implement this callback for example to monitor the state of
-     * outgoing requests, or to answer unhandled incoming requests
-     * with a final response.
+     * Notify application when a transaction started by pjsua_acc_send_request()
+     * has been completed,i.e. when a response has been received.
      *
      * @param acc_id   Account identification.
-     * @param e         Transaction event that caused the state change.
+     * @param token    Currently not used (NULL).
+     * @param event    Transaction event that caused the state change.
      */
-    void (*on_acc_tsx_state)(pjsua_acc_id acc_id,
-                             pjsip_event *event);
+    void (*on_acc_send_request)(pjsua_acc_id acc_id,
+                                void *token,
+                                pjsip_event *event);
 
     /**
      * Notify application when media state in the call has changed.
@@ -4941,18 +4940,20 @@ PJ_DECL(pj_status_t) pjsua_acc_modify(pjsua_acc_id acc_id,
  * requests.
  *
  * @param acc_id        The account ID.
- * @param dst_uri       URI to be put in the To header (normally is the same
+ * @param dest_uri      URI to be put in the To header (normally is the same
  *                      as the target URI).
  * @param method        The SIP method of the request.
  * @param msg_data      Optional headers etc to be added to outgoing
  *                      request, or NULL if no custom header is desired.
+ * @param token         Currently, it is not used. Use NULL.
  *
  * @return              PJ_SUCCESS or the error code.
  */
 PJ_DECL(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
                                             const pj_str_t *dest_uri,
-                                            const pj_str_t *method_str,
-                                            const pjsua_msg_data *msg_data);
+                                            const pj_str_t *method,
+                                            const pjsua_msg_data *msg_data,
+                                            void *token);
 
 /**
  * Modify account's presence status to be advertised to remote/presence

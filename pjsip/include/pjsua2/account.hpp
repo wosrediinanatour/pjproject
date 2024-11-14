@@ -1751,9 +1751,9 @@ struct OnMwiInfoParam
 };
 
 /**
- * This structure contains parameters for Account::onTsxState() callback.
+ * This structure contains parameters for Account::onSendRequest() callback.
  */
-struct OnTsxStateParam
+struct OnSendRequestParam
 {
     /**
      * Transaction event that caused the state change.
@@ -2132,13 +2132,12 @@ public:
     { PJ_UNUSED_ARG(prm); }
 
     /**
-     * Notify application when call state has changed.
-     * Application may then query the account info to get the
-     * detail call states by calling getInfo() function.
+     * Notify application when a transaction started by Account::sendRequest()
+     * has been completed,i.e. when a response has been received.
      *
      * @param prm       Callback parameter.
      */
-    virtual void onTsxState(OnTsxStateParam &prm)
+    virtual void onSendRequest(OnSendRequestParam &prm)
     { PJ_UNUSED_ARG(prm); }
 
     /**

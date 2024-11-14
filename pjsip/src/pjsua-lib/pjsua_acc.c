@@ -1513,35 +1513,36 @@ on_return:
 static void on_acc_tsx_state(void *token, pjsip_event *event)
 {
     pjsua_acc_id acc_id = *(pjsua_acc_id*)token;
-    (pjsua_var.ua_cfg.cb.on_acc_tsx_state)(acc_id, event);
+    (pjsua_var.ua_cfg.cb.on_acc_send_request)(acc_id, NULL, event);
 }
 
 PJ_DEF(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
                                            const pj_str_t *dest_uri,
-                                           const pj_str_t *method_str,
-                                           const pjsua_msg_data *msg_data)
+                                           const pj_str_t *method,
+                                           const pjsua_msg_data *msg_data,
+                                           void *token)
 {
     const pjsip_hdr *cap_hdr;
-    pjsip_method method;
+    pjsip_method method_;
     pj_status_t status;
     pjsip_tx_data *tdata = NULL;
-    pjsua_acc_id *token = NULL;
+    pjsua_acc_id *id = NULL;
 
     PJ_ASSERT_RETURN(acc_id>=0, PJ_EINVAL);
 
     PJ_LOG(4,(THIS_FILE, "Account %d sending %.*s request..",
-                          acc_id, (int)method_str->slen, method_str->ptr));
+                          acc_id, (int)method->slen, method->ptr));
     pj_log_push_indent();
 
-    pjsip_method_init_np(&method, (pj_str_t*)method_str);
-    status = pjsua_acc_create_request(acc_id, &method, &msg_data->target_uri, &tdata);
+    pjsip_method_init_np(&method_, (pj_str_t*)method);
+    status = pjsua_acc_create_request(acc_id, &method_, &msg_data->target_uri, &tdata);
     if (status != PJ_SUCCESS) {
         pjsua_perror(THIS_FILE, "Unable to create request", status);
         goto on_return;
     }
 
-    token = PJ_POOL_ZALLOC_T(tdata->pool, pjsua_acc_id);
-    *token = acc_id;
+    id = PJ_POOL_ZALLOC_T(tdata->pool, pjsua_acc_id);
+    *id = acc_id;
 
     pjsua_process_msg_data(tdata, msg_data);
 
@@ -1551,7 +1552,7 @@ PJ_DEF(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
                           (pjsip_hdr*) pjsip_hdr_clone(tdata->pool, cap_hdr));
     }
 
-    status = pjsip_endpt_send_request(pjsua_var.endpt, tdata, -1, token, &on_acc_tsx_state);
+    status = pjsip_endpt_send_request(pjsua_var.endpt, tdata, -1, id, &on_acc_tsx_state);
     if (status != PJ_SUCCESS) {
         pjsua_perror(THIS_FILE, "Unable to send request", status);
         goto on_return;
