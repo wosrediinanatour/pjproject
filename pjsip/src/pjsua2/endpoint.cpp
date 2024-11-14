@@ -930,6 +930,7 @@ void Endpoint::on_acc_send_request(pjsua_acc_id acc_id,
     }
 
     OnSendRequestParam prm;
+    prm.userData = token;
     prm.e.fromPj(*event);
 
     acc->onSendRequest(prm);

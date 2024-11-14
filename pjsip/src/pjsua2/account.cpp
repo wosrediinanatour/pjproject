@@ -1078,7 +1078,7 @@ void Account::sendRequest(const pj::SendRequestParam& prm) PJSUA2_THROW(Error)
     pjsua_msg_data msg_data;
     prm.txOption.toPj(msg_data);
 
-    PJSUA2_CHECK_EXPR(pjsua_acc_send_request(id, &dest_uri, &method, &msg_data, NULL));
+    PJSUA2_CHECK_EXPR(pjsua_acc_send_request(id, &dest_uri, &method, prm.userData, NULL, &msg_data));
 }
 
 void Account::setRegistration(bool renew) PJSUA2_THROW(Error)

@@ -805,13 +805,19 @@ public:
 struct SendRequestParam
 {
     /**
+     * Token or arbitrary user data ownd by the application,
+     * which will be passed back in callback Account::onSendRequest().
+     */
+    Token        userData;
+
+    /**
      * SIP method of the request.
      */
     string       method;
 
     /**
-     * Message body and/or list of headers etc to be included in
-     * outgoing request.
+     * Message body and/or list of headers etc. to be included in
+     * the outgoing request.
      */
     SipTxOption  txOption;
 
@@ -1755,6 +1761,12 @@ struct OnMwiInfoParam
  */
 struct OnSendRequestParam
 {
+    /**
+     * Token or arbitrary user data owned by the application,
+     * which was passed to Endpoint::sendRquest() function.
+     */
+    Token               userData;
+
     /**
      * Transaction event that caused the state change.
      */

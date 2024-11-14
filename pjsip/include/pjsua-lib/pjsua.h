@@ -1201,7 +1201,8 @@ typedef struct pjsua_callback
      * has been completed,i.e. when a response has been received.
      *
      * @param acc_id   Account identification.
-     * @param token    Currently not used (NULL).
+     * @param token    Arbitrary data owned by the application
+     *                 that was specified when sending the request.
      * @param event    Transaction event that caused the state change.
      */
     void (*on_acc_send_request)(pjsua_acc_id acc_id,
@@ -4934,26 +4935,29 @@ PJ_DECL(pj_status_t) pjsua_acc_modify(pjsua_acc_id acc_id,
                                       const pjsua_acc_config *acc_cfg);
 
 /**
- * Send arbitrary requests using the account. Application should only use
- * this function to create auxiliary requests outside dialog, such as
- * OPTIONS, and use the call or presence API to create dialog related
- * requests.
+ * Send arbitrary out-of-dialog requests from an account, e.g. OPTIONS.
+ * The application should use the call or presence API to create
+ * dialog-related requests.
  *
  * @param acc_id        The account ID.
- * @param dest_uri      URI to be put in the To header (normally is the same
+ * @param dest_uri      URI to be put into the To header (normally is the same
  *                      as the target URI).
  * @param method        The SIP method of the request.
- * @param msg_data      Optional headers etc to be added to outgoing
+ * @param options       This is for future use (currently only NULL is supported).
+ * @param token         Arbitrary token (user data owned by the application)
+ *                      to be passed back to the application in callback
+ *                      on_acc_send_request().
+ * @param msg_data      Optional headers etc. to be added to the outgoing
  *                      request, or NULL if no custom header is desired.
- * @param token         Currently, it is not used. Use NULL.
  *
  * @return              PJ_SUCCESS or the error code.
  */
 PJ_DECL(pj_status_t) pjsua_acc_send_request(pjsua_acc_id acc_id,
                                             const pj_str_t *dest_uri,
                                             const pj_str_t *method,
-                                            const pjsua_msg_data *msg_data,
-                                            void *token);
+                                            void *options,
+                                            void *token,
+                                            const pjsua_msg_data *msg_data);
 
 /**
  * Modify account's presence status to be advertised to remote/presence
