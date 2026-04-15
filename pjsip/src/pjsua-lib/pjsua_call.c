@@ -1358,8 +1358,36 @@ pj_status_t create_temp_sdp(pj_pool_t *pool,
 
         /* Disable media if it has zero format/codec */
         if (m->desc.fmt_count == 0) {
+#if PJSUA_MEDIA_HAS_PJMEDIA
             m->desc.fmt[m->desc.fmt_count++] = pj_str("0");
             pjmedia_sdp_media_deactivate(pool, m);
+#else
+            /* For 3rd-party media (empty codec registry), copy formats and
+             * rtpmap/fmtp attributes from the remote offer so the temporary
+             * answer remains valid for pjsip_inv_verify_request3().
+             */
+            {
+                const pjmedia_sdp_media *rem_m = rem_sdp->media[i];
+                const pj_str_t STR_RTPMAP = { "rtpmap", 6 };
+                const pj_str_t STR_FMTP   = { "fmtp",   4 };
+                unsigned j;
+
+                for (j = 0; j < rem_m->desc.fmt_count &&
+                     m->desc.fmt_count < PJMEDIA_MAX_SDP_FMT; ++j)
+                {
+                    m->desc.fmt[m->desc.fmt_count++] = rem_m->desc.fmt[j];
+                }
+                for (j = 0; j < rem_m->attr_count &&
+                     m->attr_count < PJMEDIA_MAX_SDP_ATTR; ++j)
+                {
+                    if (pj_stricmp(&rem_m->attr[j]->name, &STR_RTPMAP)==0 ||
+                        pj_stricmp(&rem_m->attr[j]->name, &STR_FMTP)==0)
+                    {
+                        m->attr[m->attr_count++] = rem_m->attr[j];
+                    }
+                }
+            }
+#endif
         }
 
         sdp->media[sdp->media_count++] = m;
