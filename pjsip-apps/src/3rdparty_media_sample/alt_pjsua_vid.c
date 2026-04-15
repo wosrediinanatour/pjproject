@@ -198,7 +198,9 @@ pj_status_t pjsua_vid_subsys_init(void)
         return status;
     }
 
-    /* Create video codec manager singleton */
+    /* Create video codec manager singleton (required even when no codecs are
+     * registered, as the singleton pointer is used throughout PJMEDIA).
+     */
     status = pjmedia_vid_codec_mgr_create(pjsua_var.pool, &mgr);
     if (status != PJ_SUCCESS) {
         PJ_PERROR(1,(THIS_FILE, status,
@@ -206,13 +208,12 @@ pj_status_t pjsua_vid_subsys_init(void)
         return status;
     }
 
-    /* Register our codecs */
-    alt_vid_codec_factory.base.op = &alt_vid_codec_factory_op;
-    alt_vid_codec_factory.base.factory_data = NULL;
-
-    status = pjmedia_vid_codec_mgr_register_factory(mgr, &alt_vid_codec_factory.base);
-    if (status != PJ_SUCCESS)
-        return status;
+    /* Codec registration is intentionally omitted: pjsua now handles an
+     * empty video codec registry gracefully, so 3rd-party media stacks do
+     * not need to register dummy codecs.  The alt_vid_codec_factory above
+     * is kept as reference documentation for implementors who want to
+     * register codecs.
+     */
 
     /*
      * TODO: put your 3rd party library initialization routine here
